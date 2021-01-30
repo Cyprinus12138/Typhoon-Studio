@@ -7,10 +7,10 @@
  */
 export default {
   dev: {
-    '/api/login/': {
+    '/api/': {
       target: 'http://127.0.0.1:3000',
       changeOrigin: true,
-      pathRewrite: { '^/api/login': '/login' ,'^/api/currentUser':'/currentUser'},
+      pathRewrite: { '^/api': '' },
     },
     '/api/currentUser/': {
       target: 'http://127.0.0.1:3000',
@@ -27,9 +27,14 @@ export default {
   },
   pre: {
     '/api/': {
-      target: 'your pre url',
+      target: 'http://127.0.0.1:3000',
       changeOrigin: true,
-      pathRewrite: { '^': '' },
+      pathRewrite: { '^/api/login': '/login', '^/api/currentUser': '/currentUser' },
+    },
+    '/api/currentUser/': {
+      target: 'http://127.0.0.1:3000',
+      changeOrigin: true,
+      pathRewrite: { '^/api/currentUser': '/currentUser' },
     },
   },
 };

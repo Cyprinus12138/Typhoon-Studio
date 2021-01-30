@@ -1,4 +1,4 @@
-﻿export default [
+export default [
   {
     path: '/user',
     layout: false,
@@ -46,6 +46,25 @@
     path: '/',
     redirect: '/welcome',
   },
+  {name: '我的',
+  icon: 'smile',
+    path: '/account',
+    routes: [
+      {
+        name: '个人中心',
+        icon: 'smile',
+        path: '/account/center',
+        component: './Account/AccountCenter',
+      },
+      {
+        name: '个人设置',
+        icon: 'smile',
+        path: '/account/settings',
+        component: './Account/AccountSettings',
+      },
+    ]
+  },
+
   {
     component: './404',
   },

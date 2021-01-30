@@ -1,11 +1,12 @@
 import React from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Card, Alert, Typography } from 'antd';
-import { FormattedMessage } from 'umi';
-import styles from './Welcome.less';
+import { Card, /* Alert, Typography */ } from 'antd';
+// import { FormattedMessage } from 'umi';
+// import styles from './Welcome.less';
 
 import DataCropView from '@/components/DataCropView';
 
+/*
 const CodePreview: React.FC = ({ children }) => (
   <pre className={styles.pre}>
     <code>
@@ -13,6 +14,8 @@ const CodePreview: React.FC = ({ children }) => (
     </code>
   </pre>
 );
+*/
+
 
 export default (): React.ReactNode => {
   return (
