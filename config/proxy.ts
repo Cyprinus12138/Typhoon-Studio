@@ -7,10 +7,15 @@
  */
 export default {
   dev: {
-    '/api/': {
-      target: 'https://preview.pro.ant.design',
+    '/api/login/': {
+      target: 'http://127.0.0.1:3000',
       changeOrigin: true,
-      pathRewrite: { '^': '' },
+      pathRewrite: { '^/api/login': '/login' ,'^/api/currentUser':'/currentUser'},
+    },
+    '/api/currentUser/': {
+      target: 'http://127.0.0.1:3000',
+      changeOrigin: true,
+      pathRewrite: { '^/api/login': '/login' ,'^/api/currentUser':'/currentUser'},
     },
   },
   test: {

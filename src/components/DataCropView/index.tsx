@@ -118,7 +118,7 @@ const DataCropView: React.FC<DataCropViewProps> = (props) => {
       cropAreaRef.current.style.top = `${String((newValue + LFAC * y * 2 ** (-16)) * factor)}px`;
     if (magnifierRef.current && imgRef.current) {
       const realSize = imgRef.current.naturalWidth * magnifyFactor;
-      magnifierRef.current.style.backgroundPositionY = `${String(realSize - (newValue - cropSize / 2 + LFAC * y * (2 ** (-16))) * magnifyFactor)}px`;
+      magnifierRef.current.style.backgroundPositionY = `${String(realSize - (newValue - currentCropSize / 2 + LFAC * y * (2 ** (-16))) * magnifyFactor)}px`;
     }
   };
 
@@ -132,7 +132,7 @@ const DataCropView: React.FC<DataCropViewProps> = (props) => {
       cropAreaRef.current.style.left = `${String((newValue + CFAC * x * 2 ** (-16)) * factor)}px`;
     if (magnifierRef.current && imgRef.current) {
       const realSize = imgRef.current.naturalWidth * magnifyFactor;
-      magnifierRef.current.style.backgroundPositionX = `${String(realSize - (newValue - cropSize / 2 + CFAC * x * (2 ** (-16))) * magnifyFactor)}px`;
+      magnifierRef.current.style.backgroundPositionX = `${String(realSize - (newValue - currentCropSize / 2 + CFAC * x * (2 ** (-16))) * magnifyFactor)}px`;
 
     }
   };
@@ -145,10 +145,6 @@ const DataCropView: React.FC<DataCropViewProps> = (props) => {
     setCurrentCropSize(newValue);
     if (magnifierRef.current)
       setMagnifyFactor(magnifierRef.current.width / newValue);
-    if (cropAreaRef.current) {
-      cropAreaRef.current.style.width = `${String(newValue * factor)}px`;
-      cropAreaRef.current.style.height = `${String(newValue * factor)}px`;
-    }
   };
 
   const refreshCropArea: (() => void) = () => {
@@ -165,6 +161,10 @@ const DataCropView: React.FC<DataCropViewProps> = (props) => {
       magnifierRef.current.style.backgroundSize = `${realSize}px ${realSize}px`;
       magnifierRef.current.style.backgroundPositionX = `${String(realSize - (currentLeft - currentCropSize / 2 + CFAC * x * (2 ** (-16))) * magnifyFactor)}px`;
       magnifierRef.current.style.backgroundPositionY = `${String(realSize - (currentTop - currentCropSize / 2 + LFAC * y * (2 ** (-16))) * magnifyFactor)}px`;
+    }
+    if (cropAreaRef.current) {
+      cropAreaRef.current.style.width = `${String(currentCropSize * factor)}px`;
+      cropAreaRef.current.style.height = `${String(currentCropSize * factor)}px`;
     }
   };
 
