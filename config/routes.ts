@@ -46,18 +46,18 @@ export default [
     path: '/',
     redirect: '/welcome',
   },
-  {name: '我的',
+  {name: 'account',
   icon: 'smile',
     path: '/account',
     routes: [
       {
-        name: '个人中心',
+        name: 'profile',
         icon: 'smile',
         path: '/account/center',
         component: './Account/AccountCenter',
       },
       {
-        name: '个人设置',
+        name: 'setting',
         icon: 'smile',
         path: '/account/settings',
         component: './Account/AccountSettings',

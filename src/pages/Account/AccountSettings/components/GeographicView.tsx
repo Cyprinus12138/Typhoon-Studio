@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { Select, Spin } from 'antd';
-import { LabeledValue } from 'antd/es/select';
-import { connect, Dispatch } from 'umi';
-import { GeographicItemType } from '../data.d';
+import type { LabeledValue } from 'antd/es/select';
+import type { Dispatch } from 'umi';
+import { connect } from 'umi';
+import type { GeographicItemType } from '../data.d';
 import styles from './GeographicView.less';
 
 const { Option } = Select;
@@ -14,7 +15,7 @@ const nullSelectItem: LabeledValue = {
 };
 
 interface GeographicViewProps {
-  dispatch?: Dispatch<any>;
+  dispatch?: Dispatch;
   province?: GeographicItemType[];
   city?: GeographicItemType[];
   value?: {
@@ -124,7 +125,6 @@ class GeographicView extends Component<GeographicViewProps> {
   render() {
     const { province, city } = this.conversionObject();
     const { loading } = this.props;
-
     return (
       <Spin spinning={loading} wrapperClassName={styles.row}>
         <Select
@@ -165,7 +165,7 @@ export default connect(
     return {
       province,
       city,
-      loading: loading.models.accountAndAccountSettings,
+      loading: loading.effects['accountAndAccountSettings/fetchProvince'],
     };
   },
 )(GeographicView);

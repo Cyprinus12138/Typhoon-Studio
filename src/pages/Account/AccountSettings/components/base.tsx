@@ -1,9 +1,10 @@
 import { UploadOutlined } from '@ant-design/icons';
-import { Button, Input, Select, Upload, Form, message } from 'antd';
-import { connect, FormattedMessage, formatMessage } from 'umi';
+import { Button, Form, Input, message, Select, Upload } from 'antd';
+import type { Dispatch } from 'umi';
+import { connect, formatMessage, FormattedMessage } from 'umi';
 import React, { Component } from 'react';
 
-import { CurrentUser } from '../data.d';
+import type { CurrentUser, ResponseType } from '../data.d';
 import GeographicView from './GeographicView';
 import PhoneView from './PhoneView';
 import styles from './BaseView.less';
@@ -14,21 +15,22 @@ const { Option } = Select;
 const AvatarView = ({ avatar }: { avatar: string }) => (
   <>
     <div className={styles.avatar_title}>
-      <FormattedMessage id="accountandaccountsettings.basic.avatar" defaultMessage="Avatar" />
+      <FormattedMessage id='accountandaccountsettings.basic.avatar' defaultMessage='Avatar' />
     </div>
     <div className={styles.avatar}>
-      <img src={avatar} alt="avatar" />
+      <img src={avatar} alt='avatar' />
     </div>
     <Upload showUploadList={false}>
       <div className={styles.button_view}>
         <Button>
           <UploadOutlined />
-          <FormattedMessage id="accountandaccountsettings.basic.change-avatar" defaultMessage="Change avatar" />
+          <FormattedMessage id='accountandaccountsettings.basic.change-avatar' defaultMessage='Change avatar' />
         </Button>
       </div>
     </Upload>
   </>
 );
+
 interface SelectItem {
   label: string;
   key: string;
@@ -64,7 +66,9 @@ const validatorPhone = (rule: any, value: string, callback: (message?: string) =
 };
 
 interface BaseViewProps {
+  dispatch: Dispatch;
   currentUser?: CurrentUser;
+  updateResponse?: ResponseType;
 }
 
 class BaseView extends Component<BaseViewProps> {
@@ -76,8 +80,7 @@ class BaseView extends Component<BaseViewProps> {
       if (currentUser.avatar) {
         return currentUser.avatar;
       }
-      const url = 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png';
-      return url;
+      return 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png';
     }
     return '';
   }
@@ -86,24 +89,46 @@ class BaseView extends Component<BaseViewProps> {
     this.view = ref;
   };
 
-  handleFinish = () => {
-    message.success(formatMessage({ id: 'accountandaccountsettings.basic.update.success' }));
+  handleFinish = (body: CurrentUser) => {
+    this.props.dispatch(
+      {
+        type: 'accountAndAccountSettings/submitUpdate',
+        payload: body,
+      },
+    );
+    message.info(formatMessage({ id: 'accountandaccountsettings.basic.update.submit' }));
   };
 
   render() {
-    const { currentUser } = this.props;
+    const { currentUser, updateResponse } = this.props;
 
+    if (updateResponse?.success != null) {
+      if (updateResponse.success)
+        message.success(formatMessage({ id: 'accountandaccountsettings.basic.update.success' })).then(() => {
+            this.props.dispatch({
+              type: 'accountAndAccountSettings/clearResponse',
+            });
+          },
+        );
+      else
+        message.error(formatMessage({ id: 'accountandaccountsettings.basic.update.failed' })).then(() => {
+            this.props.dispatch({
+              type: 'accountAndAccountSettings/clearResponse',
+            });
+          },
+        );
+    }
     return (
       <div className={styles.baseView} ref={this.getViewDom}>
         <div className={styles.left}>
           <Form
-            layout="vertical"
+            layout='vertical'
             onFinish={this.handleFinish}
             initialValues={currentUser}
             hideRequiredMark
           >
             <Form.Item
-              name="email"
+              name='email'
               label={formatMessage({ id: 'accountandaccountsettings.basic.email' })}
               rules={[
                 {
@@ -115,7 +140,7 @@ class BaseView extends Component<BaseViewProps> {
               <Input />
             </Form.Item>
             <Form.Item
-              name="name"
+              name='name'
               label={formatMessage({ id: 'accountandaccountsettings.basic.nickname' })}
               rules={[
                 {
@@ -127,7 +152,7 @@ class BaseView extends Component<BaseViewProps> {
               <Input />
             </Form.Item>
             <Form.Item
-              name="profile"
+              name='signature'
               label={formatMessage({ id: 'accountandaccountsettings.basic.profile' })}
               rules={[
                 {
@@ -142,7 +167,7 @@ class BaseView extends Component<BaseViewProps> {
               />
             </Form.Item>
             <Form.Item
-              name="country"
+              name='country'
               label={formatMessage({ id: 'accountandaccountsettings.basic.country' })}
               rules={[
                 {
@@ -152,11 +177,11 @@ class BaseView extends Component<BaseViewProps> {
               ]}
             >
               <Select style={{ maxWidth: 220 }}>
-                <Option value="China">中国</Option>
+                <Option value='China'>中国</Option>
               </Select>
             </Form.Item>
             <Form.Item
-              name="geographic"
+              name='geographic'
               label={formatMessage({ id: 'accountandaccountsettings.basic.geographic' })}
               rules={[
                 {
@@ -171,7 +196,7 @@ class BaseView extends Component<BaseViewProps> {
               <GeographicView />
             </Form.Item>
             <Form.Item
-              name="address"
+              name='address'
               label={formatMessage({ id: 'accountandaccountsettings.basic.address' })}
               rules={[
                 {
@@ -183,7 +208,7 @@ class BaseView extends Component<BaseViewProps> {
               <Input />
             </Form.Item>
             <Form.Item
-              name="phone"
+              name='phone'
               label={formatMessage({ id: 'accountandaccountsettings.basic.phone' })}
               rules={[
                 {
@@ -196,10 +221,10 @@ class BaseView extends Component<BaseViewProps> {
               <PhoneView />
             </Form.Item>
             <Form.Item>
-              <Button htmlType="submit" type="primary">
+              <Button htmlType='submit' type='primary'>
                 <FormattedMessage
-                  id="accountandaccountsettings.basic.update"
-                  defaultMessage="Update Information"
+                  id='accountandaccountsettings.basic.update'
+                  defaultMessage='Update Information'
                 />
               </Button>
             </Form.Item>
@@ -214,7 +239,8 @@ class BaseView extends Component<BaseViewProps> {
 }
 
 export default connect(
-  ({ accountAndAccountSettings }: { accountAndAccountSettings: { currentUser: CurrentUser } }) => ({
+  ({ accountAndAccountSettings }: { accountAndAccountSettings: { currentUser: CurrentUser, updateResponse: ResponseType } }) => ({
     currentUser: accountAndAccountSettings.currentUser,
+    updateResponse: accountAndAccountSettings.updateResponse,
   }),
 )(BaseView);

@@ -41,3 +41,13 @@ export interface CurrentUser {
   address: string;
   phone: string;
 }
+
+export interface ResponseType {
+  success?: boolean;
+  timestamp?: number;
+  status?: number;
+  error?: string;
+  message?: string;
+  path?: string;
+}
+

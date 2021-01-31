@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 
-import { FormattedMessage, Dispatch, connect } from 'umi';
+import type { Dispatch} from 'umi';
+import { FormattedMessage, connect } from 'umi';
 import { GridContent } from '@ant-design/pro-layout';
 import { Menu } from 'antd';
 import BaseView from './components/base';
 import BindingView from './components/binding';
-import { CurrentUser } from './data.d';
+import type { CurrentUser,ResponseType } from './data.d';
 import NotificationView from './components/notification';
 import SecurityView from './components/security';
 import styles from './style.less';
@@ -15,14 +16,13 @@ const { Item } = Menu;
 interface AccountSettingsProps {
   dispatch: Dispatch;
   currentUser: CurrentUser;
+  updateResponse: ResponseType
 }
 
 type AccountSettingsStateKeys = 'base' | 'security' | 'binding' | 'notification';
 interface AccountSettingsState {
   mode: 'inline' | 'horizontal';
-  menuMap: {
-    [key: string]: React.ReactNode;
-  };
+  menuMap: Record<string, React.ReactNode>;
   selectKey: AccountSettingsStateKeys;
 }
 

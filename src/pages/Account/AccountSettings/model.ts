@@ -1,12 +1,13 @@
-import { Effect, Reducer } from 'umi';
-import { CurrentUser, GeographicItemType } from './data.d';
-import { queryCity, queryCurrent, queryProvince, query as queryUsers } from './service';
+import type { Effect, Reducer } from 'umi';
+import type { CurrentUser, GeographicItemType, ResponseType } from './data.d';
+import { queryCity, queryCurrent, queryProvince, query as queryUsers, submitUpdate } from './service';
 
 export interface ModalState {
   currentUser?: Partial<CurrentUser>;
   province?: GeographicItemType[];
   city?: GeographicItemType[];
   isLoading?: boolean;
+  updateResponse?: ResponseType;
 }
 
 export interface ModelType {
@@ -17,13 +18,16 @@ export interface ModelType {
     fetch: Effect;
     fetchProvince: Effect;
     fetchCity: Effect;
+    submitUpdate: Effect;
   };
   reducers: {
     saveCurrentUser: Reducer<ModalState>;
+    setUpdateResponse: Reducer<ModalState>;
     changeNotifyCount: Reducer<ModalState>;
     setProvince: Reducer<ModalState>;
     setCity: Reducer<ModalState>;
     changeLoading: Reducer<ModalState>;
+    clearResponse: Reducer<ModalState>;
   };
 }
 
@@ -35,17 +39,18 @@ const Model: ModelType = {
     province: [],
     city: [],
     isLoading: false,
+    updateResponse: {},
   },
 
   effects: {
-    *fetch(_, { call, put }) {
+    * fetch(_, { call, put }) {
       const response = yield call(queryUsers);
       yield put({
         type: 'save',
         payload: response,
       });
     },
-    *fetchCurrent(_, { call, put }) {
+    * fetchCurrent(_, { call, put }) {
       const response = yield call(queryCurrent);
       yield put({
         type: 'saveCurrentUser',
@@ -63,10 +68,17 @@ const Model: ModelType = {
         payload: response,
       });
     },
-    *fetchCity({ payload }, { call, put }) {
+    * fetchCity({ payload }, { call, put }) {
       const response = yield call(queryCity, payload);
       yield put({
         type: 'setCity',
+        payload: response,
+      });
+    },
+    * submitUpdate({ payload }, { call, put }) {
+      const response = yield call(submitUpdate, payload);
+      yield put({
+        type: 'setUpdateResponse',
         payload: response,
       });
     },
@@ -77,6 +89,12 @@ const Model: ModelType = {
       return {
         ...state,
         currentUser: action.payload || {},
+      };
+    },
+    setUpdateResponse(state, action) {
+      return {
+        ...state,
+        updateResponse: action.payload,
       };
     },
     changeNotifyCount(state = {}, action) {
@@ -106,6 +124,12 @@ const Model: ModelType = {
         ...state,
         isLoading: action.payload,
       };
+    },
+    clearResponse(state){
+      return{
+        ...state,
+        updateResponse: {},
+      }
     },
   },
 };
