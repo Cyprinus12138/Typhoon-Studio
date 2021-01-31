@@ -46,8 +46,15 @@ export default [
     path: '/',
     redirect: '/welcome',
   },
-  {name: 'account',
-  icon: 'smile',
+  {
+    name: 'userList',
+    icon: 'smile',
+    path: '/userlist',
+    component: './UserList',
+  },
+  {
+    name: 'account',
+    icon: 'smile',
     path: '/account',
     routes: [
       {
@@ -62,9 +69,14 @@ export default [
         path: '/account/settings',
         component: './Account/AccountSettings',
       },
-    ]
+    ],
   },
-
+  {
+    name: 'groupList',
+    icon: 'smile',
+    path: '/grouplist',
+    component: './GroupList',
+  },
   {
     component: './404',
   },
