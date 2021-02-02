@@ -15,7 +15,8 @@ declare namespace API {
   };
 
   export type LoginStateType = {
-    status?: 'ok' | 'error';
+    success?: boolean,
+    status?: 'ok' | 'error' | number;
     type?: string;
   };
 

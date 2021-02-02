@@ -9,7 +9,7 @@ import CreateForm from './components/CreateForm';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 import type { TableListItem } from './data.d';
-import { queryUser, updateUser, addUser, freezeUser, unfreezeUser } from './service';
+import { queryGroup, updateGroup, addGroup, removeGroup } from './service';
 
 /**
  * 添加节点
@@ -18,7 +18,7 @@ import { queryUser, updateUser, addUser, freezeUser, unfreezeUser } from './serv
 const handleAdd = async (fields: TableListItem) => {
   const hide = message.loading('正在添加');
   try {
-    await addUser({ ...fields });
+    await addGroup({ ...fields });
     hide();
     message.success('添加成功');
     return true;
@@ -36,9 +36,10 @@ const handleAdd = async (fields: TableListItem) => {
 const handleUpdate = async (fields: FormValueType) => {
   const hide = message.loading('正在配置');
   try {
-    await updateUser({
+    await updateGroup({
       name: fields.name,
-      uid: fields.uid,
+      desc: fields.desc,
+      key: fields.key,
     });
     hide();
 
@@ -55,40 +56,19 @@ const handleUpdate = async (fields: FormValueType) => {
  *  删除节点
  * @param selectedRows
  */
-const handleUnfreeze = async (selectedRows: TableListItem[]) => {
-  const hide = message.loading('正在解冻');
+const handleRemove = async (selectedRows: TableListItem[]) => {
+  const hide = message.loading('正在删除');
   if (!selectedRows) return true;
   try {
-    await unfreezeUser({
-      uid: selectedRows.map((row) => row.uid),
+    await removeGroup({
+      key: selectedRows.map((row) => row.key),
     });
     hide();
-    message.success('解冻成功，即将刷新');
+    message.success('删除成功，即将刷新');
     return true;
   } catch (error) {
     hide();
-    message.error('解冻失败，请重试');
-    return false;
-  }
-};
-
-/**
- *  冻结节点
- * @param selectedRows
- */
-const handleFreeze = async (selectedRows: TableListItem[]) => {
-  const hide = message.loading('正在冻结');
-  if (!selectedRows) return true;
-  try {
-    await freezeUser({
-      uid: selectedRows.map((row) => row.uid),
-    });
-    hide();
-    message.success('冻结成功，即将刷新');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('冻结失败，请重试');
+    message.error('删除失败，请重试');
     return false;
   }
 };
@@ -102,13 +82,14 @@ const TableList: React.FC = () => {
   const [selectedRowsState, setSelectedRows] = useState<TableListItem[]>([]);
   const columns: ProColumns<TableListItem>[] = [
     {
-      title: '姓名',  // TODO： Intl
+      title: '规则名称',
       dataIndex: 'name',
+      tip: '规则名称是唯一的 key',
       formItemProps: {
         rules: [
           {
             required: true,
-            message: '姓名为必填项',
+            message: '规则名称为必填项',
           },
         ],
       },
@@ -117,44 +98,32 @@ const TableList: React.FC = () => {
       },
     },
     {
-      title: '学/工号',
-      dataIndex: 'uid',
-      // sorter: true,
-      formItemProps: {
-        rules: [
-          {
-            required: true,
-            message: '学/工号为必填项',
-          },
-        ],
-      },
-    },
-    // TODO Add group list.
-    {
-      title: '签名',
-      search: false,
-      dataIndex: 'signature',
-      hideInForm: true,
+      title: '描述',
+      dataIndex: 'desc',
       valueType: 'textarea',
     },
     {
+      title: '服务调用次数',
+      dataIndex: 'callNo',
+      sorter: true,
+      hideInForm: true,
+      renderText: (val: string) => `${val} 万`,
+    },
+    {
       title: '状态',
-      search: false,
       dataIndex: 'status',
       hideInForm: true,
-      filters: true,
       valueEnum: {
-        0: { text: '离线', status: 'Default' }, // TODO To fix: can not be -1.
+        0: { text: '关闭', status: 'Default' },
         1: { text: '运行中', status: 'Processing' },
-        2: { text: '在线', status: 'Success' },
-        9: { text: '冻结', status: 'Error' },
+        2: { text: '已上线', status: 'Success' },
+        3: { text: '异常', status: 'Error' },
       },
     },
     {
-      title: '上次登录时间',
-      dataIndex: 'loginAt',
-      // sorter: true,
-      search: false,
+      title: '上次调度时间',
+      dataIndex: 'updatedAt',
+      sorter: true,
       valueType: 'dateTime',
       hideInForm: true,
       renderFormItem: (item, { defaultRender, ...rest }, form) => {
@@ -162,8 +131,8 @@ const TableList: React.FC = () => {
         if (`${status}` === '0') {
           return false;
         }
-        if (`${status}` === '9') {
-          return <Input {...rest} placeholder='请输入异常原因！' />;
+        if (`${status}` === '3') {
+          return <Input {...rest} placeholder="请输入异常原因！" />;
         }
         return defaultRender(item);
       },
@@ -182,18 +151,8 @@ const TableList: React.FC = () => {
           >
             配置
           </a>
-          <Divider type='vertical' />
-          {parseInt(record.status, 10) === 9 ?
-            <a onClick={async () => {
-              await handleUnfreeze([record]);
-              actionRef.current?.reloadAndRest?.();
-            }}>解冻</a>
-            :
-            <a onClick={async () => {
-              await handleFreeze([record]);
-              actionRef.current?.reloadAndRest?.();
-            }}>冻结</a>}
-
+          <Divider type="vertical" />
+          <a href="">订阅警报</a>
         </>
       ),
     },
@@ -202,16 +161,18 @@ const TableList: React.FC = () => {
   return (
     <PageContainer>
       <ProTable<TableListItem>
-        headerTitle='系统用户'
+        headerTitle="查询表格"
         actionRef={actionRef}
-        rowKey='uid'
-        search={{labelWidth: 120}}   // {false}
+        rowKey="key"
+        search={{
+          labelWidth: 120,
+        }}
         toolBarRender={() => [
-          <Button type='primary' onClick={() => handleModalVisible(true)}>
-            <PlusOutlined /> 添加
+          <Button type="primary" onClick={() => handleModalVisible(true)}>
+            <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={(params, sorter, filter) => queryUser({ ...params, sorter, filter })}
+        request={(params, sorter, filter) => queryGroup({ ...params, sorter, filter })}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => setSelectedRows(selectedRows),
@@ -222,23 +183,22 @@ const TableList: React.FC = () => {
           extra={
             <div>
               已选择 <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a> 项&nbsp;&nbsp;
+              <span>
+                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo, 0)} 万
+              </span>
             </div>
           }
         >
-          <Button type='primary' danger
-                  onClick={async () => {
-                    await handleFreeze(selectedRowsState);
-                    setSelectedRows([]);
-                    actionRef.current?.reloadAndRest?.();
-                  }}
+          <Button
+            onClick={async () => {
+              await handleRemove(selectedRowsState);
+              setSelectedRows([]);
+              actionRef.current?.reloadAndRest?.();
+            }}
           >
-            批量冻结
+            批量删除
           </Button>
-          <Button type='primary' onClick={async () => {
-            await handleUnfreeze(selectedRowsState);
-            setSelectedRows([]);
-            actionRef.current?.reloadAndRest?.();
-          }}>批量解冻</Button>
+          <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
       <CreateForm onCancel={() => handleModalVisible(false)} modalVisible={createModalVisible}>
@@ -252,8 +212,8 @@ const TableList: React.FC = () => {
               }
             }
           }}
-          rowKey='key'
-          type='form'
+          rowKey="key"
+          type="form"
           columns={columns}
         />
       </CreateForm>

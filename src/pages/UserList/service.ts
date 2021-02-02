@@ -7,7 +7,7 @@ export async function queryUser(params?: TableListParams) {
   });
 }
 
-export async function removeUser(params: { key: number[] }) {
+export async function removeUser(params: { uid: string[] }) {
   return request('/api/user', {
     method: 'POST',
     data: {
@@ -22,7 +22,6 @@ export async function addUser(params: TableListParams) {
     method: 'POST',
     data: {
       ...params,
-      method: 'post',
     },
   });
 }
@@ -33,6 +32,25 @@ export async function updateUser(params: TableListParams) {
     data: {
       ...params,
       method: 'update',
+    },
+  });
+}
+
+export async function freezeUser(params: { uid: string[] }) {
+  return request('/api/user/freeze', {
+    method: 'POST',
+    data: {
+      ...params,
+    },
+  });
+}
+
+export async function unfreezeUser(params: { uid: string[] }) {
+  return request('/api/user/freeze', {
+    method: 'POST',
+    data: {
+      ...params,
+      status: 1,
     },
   });
 }

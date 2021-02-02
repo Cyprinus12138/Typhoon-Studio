@@ -12,7 +12,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
   return (
     <Modal
       destroyOnClose
-      title="添加用户" // TODO Intl
+      title="新建群组"
       visible={modalVisible}
       onCancel={() => onCancel()}
       footer={null}
