@@ -1,267 +1,156 @@
-import { PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, message, Input, Drawer } from 'antd';
-import React, { useState, useRef } from 'react';
-import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
-import type { ProColumns, ActionType } from '@ant-design/pro-table';
-import ProTable from '@ant-design/pro-table';
-import ProDescriptions from '@ant-design/pro-descriptions';
+import { message, Tree, Menu, Dropdown } from 'antd';
+import React, { useState } from 'react';
+import ProCard from '@ant-design/pro-card';
+
+import type { GroupNode } from './data';
+import { queryGroupTree } from './service';
+import type { DataNode } from 'antd/lib/tree';
 import CreateForm from './components/CreateForm';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
-import type { TableListItem } from './data.d';
-import { queryGroup, updateGroup, addGroup, removeGroup } from './service';
 
-/**
- * 添加节点
- * @param fields
- */
-const handleAdd = async (fields: TableListItem) => {
-  const hide = message.loading('正在添加');
-  try {
-    await addGroup({ ...fields });
-    hide();
-    message.success('添加成功');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('添加失败请重试！');
-    return false;
-  }
-};
 
-/**
- * 更新节点
- * @param fields
- */
-const handleUpdate = async (fields: FormValueType) => {
-  const hide = message.loading('正在配置');
-  try {
-    await updateGroup({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
+/*
+const initTreeDate: GroupNode[] = [
+  { title: 'Expand to load', key: '0' },
+  { title: 'Expand to load', key: '1' },
+  { title: 'Tree Node', key: '2', isLeaf: true },
+];
+*/
+const initTreeDate: GroupNode[] = [
+  { title: 'DHU', key: 'None', isManager: false, isLeaf: false },
+];
+
+
+// It's just a simple demo. You can use tree map to optimize update perf.
+function updateTreeData(list: GroupNode[], key: React.Key, children: GroupNode[]): GroupNode[] {
+  return list.map(node => {
+    if (node.key === key) {
+      return {
+        ...node,
+        children,
+      };
+    }
+    if (node.children) {
+      return {
+        ...node,
+        children: updateTreeData(node.children, key, children),
+      };
+    }
+    return node;
+  });
+}
+
+const GroupManagement: React.FC = () => {
+  const [treeData, setTreeData] = useState(initTreeDate);
+  const [selectedGroup, setSelectedGroup] = useState({});
+
+
+  function onLoadData({ key, children, level, isManager }: any) {
+    return new Promise<void>((resolve) => {
+      if (children?.length > 0) {
+        resolve();
+        return;
+      }
+      queryGroupTree({
+        key, level, isManager,
+      }).then(res => {
+        const { data: newChildren } = res;
+        return setTreeData(origin =>
+          updateTreeData(origin, key, newChildren),
+        );
+      }).catch(() => {
+        message.error('更新列表发生错误，请稍后重试！');
+        return setTreeData(origin =>
+          updateTreeData(origin, key, [{ key: `${key}error`, title: '请稍后尝试刷新', isLeaf: true }]),
+        );
+      }).finally(() => {
+        resolve();
+      });
     });
-    hide();
-
-    message.success('配置成功');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('配置失败请重试！');
-    return false;
   }
-};
 
-/**
- *  删除节点
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: TableListItem[]) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-  try {
-    await removeGroup({
-      key: selectedRows.map((row) => row.key),
+  function refreshNode({ key, level, isManager }: any) {
+    return new Promise<void>((resolve) => {
+      queryGroupTree({
+        key, level, isManager,
+      }).then(res => {
+        const { data: newChildren } = res;
+        return setTreeData(origin =>
+          updateTreeData(origin, key, newChildren),
+        );
+      }).catch(() => {
+        message.error('更新列表发生错误，请稍后重试！');
+        return setTreeData(origin =>
+          updateTreeData(origin, key, [{ key: `${key}error`, title: '请稍后尝试刷新', isLeaf: true }]),
+        );
+      }).finally(() => {
+        resolve();
+      });
     });
-    hide();
-    message.success('删除成功，即将刷新');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('删除失败，请重试');
-    return false;
   }
-};
 
-const TableList: React.FC = () => {
-  const [createModalVisible, handleModalVisible] = useState<boolean>(false);
-  const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
-  const [stepFormValues, setStepFormValues] = useState({});
-  const actionRef = useRef<ActionType>();
-  const [row, setRow] = useState<TableListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<TableListItem[]>([]);
-  const columns: ProColumns<TableListItem>[] = [
-    {
-      title: '规则名称',
-      dataIndex: 'name',
-      tip: '规则名称是唯一的 key',
-      formItemProps: {
-        rules: [
-          {
-            required: true,
-            message: '规则名称为必填项',
-          },
-        ],
-      },
-      render: (dom, entity) => {
-        return <a onClick={() => setRow(entity)}>{dom}</a>;
-      },
-    },
-    {
-      title: '描述',
-      dataIndex: 'desc',
-      valueType: 'textarea',
-    },
-    {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) => `${val} 万`,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      hideInForm: true,
-      valueEnum: {
-        0: { text: '关闭', status: 'Default' },
-        1: { text: '运行中', status: 'Processing' },
-        2: { text: '已上线', status: 'Success' },
-        3: { text: '异常', status: 'Error' },
-      },
-    },
-    {
-      title: '上次调度时间',
-      dataIndex: 'updatedAt',
-      sorter: true,
-      valueType: 'dateTime',
-      hideInForm: true,
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder="请输入异常原因！" />;
-        }
-        return defaultRender(item);
-      },
-    },
-    {
-      title: '操作',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => (
+  function onRightClick({ node }: any) {
+    setSelectedGroup(node);
+  }
+
+  const menu = (isManager: boolean) => {
+    return (
+      <Menu>
+        {isManager &&
         <>
-          <a
-            onClick={() => {
-              handleUpdateModalVisible(true);
-              setStepFormValues(record);
-            }}
-          >
-            配置
-          </a>
-          <Divider type="vertical" />
-          <a href="">订阅警报</a>
+          <Menu.Item>
+            <a target='_blank' rel='noopener noreferrer'>
+              管理
+            </a>
+          </Menu.Item>
+          <Menu.Item>
+            <CreateForm trigger={
+              <a target='_blank' rel='noopener noreferrer'>
+                新建
+              </a>
+            } />
+          </Menu.Item>
         </>
-      ),
-    },
-  ];
+        }
+
+        <Menu.Item>
+          <a target='_blank' rel='noopener noreferrer' onClick={() => {
+            refreshNode(selectedGroup);
+          }}>
+            刷新
+          </a>
+        </Menu.Item>
+
+
+        <Menu.Item danger>a danger item</Menu.Item>
+      </Menu>
+    );
+  };
+
+
+  function renderTitle(node: DataNode): React.ReactNode {
+    return (
+      <Dropdown overlay={menu(node.isManager)} trigger={['contextMenu']}><span>{node.title}</span></Dropdown>
+    );
+  }
 
   return (
-    <PageContainer>
-      <ProTable<TableListItem>
-        headerTitle="查询表格"
-        actionRef={actionRef}
-        rowKey="key"
-        search={{
-          labelWidth: 120,
-        }}
-        toolBarRender={() => [
-          <Button type="primary" onClick={() => handleModalVisible(true)}>
-            <PlusOutlined /> 新建
-          </Button>,
-        ]}
-        request={(params, sorter, filter) => queryGroup({ ...params, sorter, filter })}
-        columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => setSelectedRows(selectedRows),
-        }}
-      />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择 <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a> 项&nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo, 0)} 万
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量删除
-          </Button>
-          <Button type="primary">批量审批</Button>
-        </FooterToolbar>
-      )}
-      <CreateForm onCancel={() => handleModalVisible(false)} modalVisible={createModalVisible}>
-        <ProTable<TableListItem, TableListItem>
-          onSubmit={async (value) => {
-            const success = await handleAdd(value);
-            if (success) {
-              handleModalVisible(false);
-              if (actionRef.current) {
-                actionRef.current.reload();
-              }
-            }
-          }}
-          rowKey="key"
-          type="form"
-          columns={columns}
-        />
-      </CreateForm>
-      {stepFormValues && Object.keys(stepFormValues).length ? (
-        <UpdateForm
-          onSubmit={async (value) => {
-            const success = await handleUpdate(value);
-            if (success) {
-              handleUpdateModalVisible(false);
-              setStepFormValues({});
-              if (actionRef.current) {
-                actionRef.current.reload();
-              }
-            }
-          }}
-          onCancel={() => {
-            handleUpdateModalVisible(false);
-            setStepFormValues({});
-          }}
-          updateModalVisible={updateModalVisible}
-          values={stepFormValues}
-        />
-      ) : null}
 
-      <Drawer
-        width={600}
-        visible={!!row}
-        onClose={() => {
-          setRow(undefined);
-        }}
-        closable={false}
-      >
-        {row?.name && (
-          <ProDescriptions<TableListItem>
-            column={2}
-            title={row?.name}
-            request={async () => ({
-              data: row || {},
-            })}
-            params={{
-              id: row?.name,
-            }}
-            columns={columns}
-          />
-        )}
-      </Drawer>
-    </PageContainer>
+    <ProCard title='群组管理' /* extra='2019年9月28日' */ split='vertical' bordered headerBordered>
+
+      <ProCard title='群组' colSpan='300px'>
+        <Tree loadData={onLoadData} treeData={treeData} showLine={true} titleRender={renderTitle}
+              onRightClick={onRightClick}
+              showIcon={true} />
+      </ProCard>
+      <ProCard title='流量占用情况'>
+        <div style={{ height: 360 }}>右侧内容</div>
+      </ProCard>
+    </ProCard>
+
+
   );
 };
 
-export default TableList;
+export default (): React.ReactNode => {
+  return <GroupManagement />;
+}

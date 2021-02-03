@@ -34,3 +34,19 @@ export interface TableListParams {
   filter?: { [key: string]: any[] };
   sorter?: { [key: string]: any };
 }
+
+export interface QueryGroupTreeParams {
+  level: number,
+  key: string,
+  isManager?: boolean
+}
+
+export interface GroupNode {
+  title: string;
+  key: string;
+  isLeaf?: boolean;
+  children?: GroupNode[];
+  level?: number,
+  manager?: string,
+  isManager?: boolean,
+}
