@@ -6,6 +6,7 @@ import type { GroupNode } from './data';
 import { queryGroupTree } from './service';
 import type { DataNode } from 'antd/lib/tree';
 import CreateForm from './components/CreateForm';
+import UpdateForm from '@/pages/UserList/components/UpdateForm';
 
 
 /*
@@ -42,6 +43,7 @@ function updateTreeData(list: GroupNode[], key: React.Key, children: GroupNode[]
 const GroupManagement: React.FC = () => {
   const [treeData, setTreeData] = useState(initTreeDate);
   const [selectedGroup, setSelectedGroup] = useState({});
+  const [modalVisible, setModalVisible] = useState(false);
 
 
   function onLoadData({ key, children, level, isManager }: any) {
@@ -103,11 +105,13 @@ const GroupManagement: React.FC = () => {
             </a>
           </Menu.Item>
           <Menu.Item>
-            <CreateForm trigger={
-              <a target='_blank' rel='noopener noreferrer'>
-                新建
-              </a>
-            } />
+            <CreateForm/>
+
+            {/* <a target='_blank' rel='noopener noreferrer' onClick={() => {
+              setModalVisible(true);console.log();
+            }}>
+              新建
+            </a> */}
           </Menu.Item>
         </>
         }
@@ -136,6 +140,19 @@ const GroupManagement: React.FC = () => {
   return (
 
     <ProCard title='群组管理' /* extra='2019年9月28日' */ split='vertical' bordered headerBordered>
+      <UpdateForm
+        onSubmit={async () => {
+
+        }}
+        onCancel={() => {
+          setModalVisible(false);
+          // setStepFormValues({});
+        }}
+        updateModalVisible={modalVisible}
+        values={{}}
+      />
+
+
 
       <ProCard title='群组' colSpan='300px'>
         <Tree loadData={onLoadData} treeData={treeData} showLine={true} titleRender={renderTitle}
