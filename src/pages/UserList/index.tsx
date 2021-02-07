@@ -37,7 +37,7 @@ const handleUpdate = async (fields: FormValueType) => {
   const hide = message.loading('正在配置');
   try {
     await updateUser({
-      name: fields.name,
+      realName: fields.realName,
       uid: fields.uid,
     });
     hide();
@@ -103,7 +103,7 @@ const TableList: React.FC = () => {
   const columns: ProColumns<TableListItem>[] = [
     {
       title: '姓名',  // TODO： Intl
-      dataIndex: 'name',
+      dataIndex: 'realName',
       formItemProps: {
         rules: [
           {
@@ -286,15 +286,15 @@ const TableList: React.FC = () => {
         }}
         closable={false}
       >
-        {row?.name && (
+        {row?.realName && (
           <ProDescriptions<TableListItem>
             column={2}
-            title={row?.name}
+            title={row?.realName}
             request={async () => ({
               data: row || {},
             })}
             params={{
-              id: row?.name,
+              id: row?.realName,
             }}
             columns={columns}
           />

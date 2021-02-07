@@ -4,7 +4,6 @@ import ProCard from '@ant-design/pro-card';
 
 import type { GroupNode } from './data';
 import { queryGroupTree } from './service';
-import type { DataNode } from 'antd/lib/tree';
 import CreateForm from './components/CreateForm';
 import UpdateForm from '@/pages/UserList/components/UpdateForm';
 
@@ -94,7 +93,7 @@ const GroupManagement: React.FC = () => {
     setSelectedGroup(node);
   }
 
-  const menu = (isManager: boolean) => {
+  const menu = (isManager?: boolean, isLeaf?: boolean, gid: string) => {
     return (
       <Menu>
         {isManager &&
@@ -104,15 +103,10 @@ const GroupManagement: React.FC = () => {
               管理
             </a>
           </Menu.Item>
+          {!isLeaf &&
           <Menu.Item>
-            <CreateForm/>
-
-            {/* <a target='_blank' rel='noopener noreferrer' onClick={() => {
-              setModalVisible(true);console.log();
-            }}>
-              新建
-            </a> */}
-          </Menu.Item>
+            <CreateForm parent={gid} />
+          </Menu.Item>}
         </>
         }
 
@@ -131,9 +125,10 @@ const GroupManagement: React.FC = () => {
   };
 
 
-  function renderTitle(node: DataNode): React.ReactNode {
+  function renderTitle(node: GroupNode): React.ReactNode {
     return (
-      <Dropdown overlay={menu(node.isManager)} trigger={['contextMenu']}><span>{node.title}</span></Dropdown>
+      <Dropdown overlay={menu(node.isManager, node.isLeaf, node.key)}
+                trigger={['contextMenu']}><span>{node.title}</span></Dropdown>
     );
   }
 
@@ -151,7 +146,6 @@ const GroupManagement: React.FC = () => {
         updateModalVisible={modalVisible}
         values={{}}
       />
-
 
 
       <ProCard title='群组' colSpan='300px'>

@@ -1,3 +1,6 @@
+import type { DataNode } from 'antd/lib/tree';
+import type React from '_@types_react@17.0.0@@types/react';
+
 export interface TableListItem {
   key: number;
   disabled?: boolean;
@@ -31,8 +34,8 @@ export interface TableListParams {
   key?: number;
   pageSize?: number;
   currentPage?: number;
-  filter?: { [key: string]: any[] };
-  sorter?: { [key: string]: any };
+  filter?: Record<string, any[]>;
+  sorter?: Record<string, any>;
 }
 
 export interface QueryGroupTreeParams {
@@ -41,12 +44,24 @@ export interface QueryGroupTreeParams {
   isManager?: boolean
 }
 
-export interface GroupNode {
-  title: string;
-  key: string;
+export interface GroupNode extends DataNode {
+  title?: React.ReactNode;
+  key: React.ReactText;
   isLeaf?: boolean;
   children?: GroupNode[];
   level?: number,
   manager?: string,
   isManager?: boolean,
+}
+
+export interface QueryGroupMemberParams {
+  group: string,
+  getParent?: boolean,
+}
+
+export interface GroupMemberData {
+  real_name: string,
+  role: string,
+  uid: string,
+  targetKey?: boolean
 }

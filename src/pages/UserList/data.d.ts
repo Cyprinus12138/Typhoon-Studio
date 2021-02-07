@@ -3,7 +3,7 @@ export interface TableListItem {
   // disabled?: boolean;
   // href: string;
   // avatar: string;
-  name: string;  //
+  realName: string;  //
   // owner: string;
   signature: string;  //
   // callNo: number;  //
@@ -26,11 +26,11 @@ export interface TableListData {
 
 export interface TableListParams {
   status?: string;
-  name?: string;
+  realName?: string;
   // desc?: string;
   uid?: string;
   pageSize?: number;
   currentPage?: number;
-  filter?: { [key: string]: any[] };
-  sorter?: { [key: string]: any };
+  filter?: Record<string, any[]>;
+  sorter?: Record<string, any>;
 }

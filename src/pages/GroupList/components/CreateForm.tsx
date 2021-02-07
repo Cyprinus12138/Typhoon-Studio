@@ -6,10 +6,14 @@ import ProForm, {
 
 import { message, Select, Spin, Modal, Transfer } from 'antd';
 import type { SelectValue } from 'antd/lib/select';
+import { queryGroupMember } from '../service';
+import type { GroupMemberData } from '../data';
+import { UserOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
 interface CreateFormProps {
+  parent: string,
   onCancel?: () => void;
 }
 
@@ -27,28 +31,17 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
   const [fetching, setFetching] = useState<boolean>(false);
   const [data, setData] = useState([]);
   const [visible, setVisible] = useState(false);
-  let lastFetchId = 0;
+  // const lastFetchId = 0;
 
-  const fetchUser = async (value: string) => {
-    console.log('fetching user', value);
-    lastFetchId += 1;
-    const fetchId = lastFetchId;
-    setFetching(true);
-    setData([]);
-    fetch('https://randomuser.me/api/?results=5')
-      .then(response => response.json())
-      .then(body => {
-        if (fetchId !== lastFetchId) {
-          // for fetch callback order
-          return;
-        }
-        const res = body.results.map(user => ({
-          text: `${user.name.first} ${user.name.last}`,
-          value: user.login.username,
-        }));
-        setData(res);
-        setFetching(false);
-      });
+  const fetchUserForManager = async (/* value: string */) => {
+    const users = await queryGroupMember({ getParent: false, group: props.parent });
+    const res = users.data.map((user: GroupMemberData) => ({
+      text: user.real_name,
+      value: user.uid,
+      isManager: user.role === 'MANAGER',
+    }));
+    setData(res);
+    setFetching(false);
   };
 
   const handleChange = (value: SelectValue) => {
@@ -106,9 +99,10 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             tooltip='最长为 255 位'
             placeholder='请输入名称'
           />
-          <ProForm.Item name='manager' label='负责人' className='pro-field-md'>
+          <ProForm.Item name='manager' label='负责人'              style={{ width: '100%' }}
+          >
             <Select
-              className='pro-field-md'
+              // className='pro-field-md'
               // mode='multiple'
               showSearch
               labelInValue
@@ -116,12 +110,12 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
               placeholder='Select users'
               notFoundContent={fetching ? <Spin size='small' /> : null}
               filterOption={false}
-              onSearch={fetchUser}
+              onSearch={fetchUserForManager}
               onChange={handleChange}
               style={{ width: '100%' }}
             >
               {data.map(d => (
-                <Option key={d.value} value={'st'}>{d.text}</Option>
+                <Option className='pro-field-md' key={d.value} value={d.value}>{d.text}</Option>
               ))}
             </Select>
           </ProForm.Item>
