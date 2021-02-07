@@ -8,13 +8,6 @@ import CreateForm from './components/CreateForm';
 import UpdateForm from '@/pages/UserList/components/UpdateForm';
 
 
-/*
-const initTreeDate: GroupNode[] = [
-  { title: 'Expand to load', key: '0' },
-  { title: 'Expand to load', key: '1' },
-  { title: 'Tree Node', key: '2', isLeaf: true },
-];
-*/
 const initTreeDate: GroupNode[] = [
   { title: 'DHU', key: 'None', isManager: false, isLeaf: false },
 ];
@@ -93,7 +86,7 @@ const GroupManagement: React.FC = () => {
     setSelectedGroup(node);
   }
 
-  const menu = (isManager?: boolean, isLeaf?: boolean, gid: string) => {
+  const menu = (gid: string, isManager?: boolean, isLeaf?: boolean) => {
     return (
       <Menu>
         {isManager &&
@@ -127,7 +120,7 @@ const GroupManagement: React.FC = () => {
 
   function renderTitle(node: GroupNode): React.ReactNode {
     return (
-      <Dropdown overlay={menu(node.isManager, node.isLeaf, node.key)}
+      <Dropdown overlay={menu(node.key, node.isManager, node.isLeaf)}
                 trigger={['contextMenu']}><span>{node.title}</span></Dropdown>
     );
   }
@@ -141,7 +134,6 @@ const GroupManagement: React.FC = () => {
         }}
         onCancel={() => {
           setModalVisible(false);
-          // setStepFormValues({});
         }}
         updateModalVisible={modalVisible}
         values={{}}

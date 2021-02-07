@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import ProForm, {
+import  {
   StepsForm,
-  ProFormText, ProFormTextArea,
+  ProFormText, ProFormTextArea, ProFormSelect,
 } from '@ant-design/pro-form';
 
-import { message, Select, Spin, Modal, Transfer } from 'antd';
-import type { SelectValue } from 'antd/lib/select';
+import { message, Modal, Transfer } from 'antd';
+// import type { SelectValue } from 'antd/lib/select';
 import { queryGroupMember } from '../service';
 import type { GroupMemberData } from '../data';
 import { UserOutlined } from '@ant-design/icons';
 
-const { Option } = Select;
+// const { Option } = Select;
 
 interface CreateFormProps {
   parent: string,
@@ -28,7 +28,6 @@ const waitTime = (time: number = 100) => {
 
 const CreateForm: React.FC<CreateFormProps> = (props) => {
   // const { modalVisible, onCancel } = props;
-  const [fetching, setFetching] = useState<boolean>(false);
   const [data, setData] = useState([]);
   const [visible, setVisible] = useState(false);
   // const lastFetchId = 0;
@@ -36,19 +35,25 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
   const fetchUserForManager = async (/* value: string */) => {
     const users = await queryGroupMember({ getParent: false, group: props.parent });
     const res = users.data.map((user: GroupMemberData) => ({
-      text: user.real_name,
+      title: user.real_name,
+      label: <span>{(user.role === 'MANAGER' )&& <UserOutlined />}{user.real_name}</span>,
       value: user.uid,
       isManager: user.role === 'MANAGER',
     }));
     setData(res);
-    setFetching(false);
   };
 
+
+/*
   const handleChange = (value: SelectValue) => {
     console.log(value);
     setData([]);
     setFetching(false);
   };
+
+ */
+
+  if (data.length <= 0) fetchUserForManager();
 
   return (
     <>
@@ -99,6 +104,15 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             tooltip='最长为 255 位'
             placeholder='请输入名称'
           />
+          <ProFormSelect
+            label='负责人'
+            name='manager'
+            options={data}
+            showSearch
+            width='md'
+          />
+
+          {/*
           <ProForm.Item name='manager' label='负责人'              style={{ width: '100%' }}
           >
             <Select
@@ -119,6 +133,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
               ))}
             </Select>
           </ProForm.Item>
+          */}
           <ProFormTextArea width='md' name='description' label='描述' />
         </StepsForm.StepForm>
         <StepsForm.StepForm
