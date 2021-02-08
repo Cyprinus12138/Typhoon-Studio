@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import  {
+import React, { useEffect, useState } from 'react';
+import {
   StepsForm,
   ProFormText, ProFormTextArea, ProFormSelect,
 } from '@ant-design/pro-form';
 
 import { message, Modal, Transfer } from 'antd';
 // import type { SelectValue } from 'antd/lib/select';
-import { queryGroupMember } from '../service';
+import { queryGroupMember, createGroup } from '../service';
 import type { GroupMemberData } from '../data';
 import { UserOutlined } from '@ant-design/icons';
 
@@ -30,42 +30,50 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
   // const { modalVisible, onCancel } = props;
   const [data, setData] = useState([]);
   const [visible, setVisible] = useState(false);
-  // const lastFetchId = 0;
+  const [current, setCurrent] = useState(0);
 
   const fetchUserForManager = async (/* value: string */) => {
     const users = await queryGroupMember({ getParent: false, group: props.parent });
     const res = users.data.map((user: GroupMemberData) => ({
       title: user.real_name,
-      label: <span>{(user.role === 'MANAGER' )&& <UserOutlined />}{user.real_name}</span>,
+      label: <span>{(user.role === 'MANAGER') && <UserOutlined />}{user.real_name}</span>,
       value: user.uid,
       isManager: user.role === 'MANAGER',
     }));
     setData(res);
   };
 
+  useEffect(() => {
+    if (visible)
+      fetchUserForManager();
+    setCurrent(0);
+  }, [visible]);
 
-/*
-  const handleChange = (value: SelectValue) => {
-    console.log(value);
-    setData([]);
-    setFetching(false);
-  };
+  useEffect(() => {
+    if (current === 0)
+      fetchUserForManager();
+    if (current === 1)
+      ;
+  }, [current]);
 
- */
-
-  if (data.length <= 0) fetchUserForManager();
 
   return (
     <>
       <a onClick={() => {
         setVisible(true);
       }}>新建</a>
+
+
       <StepsForm
         onFinish={async (values) => {
           console.log(values);
           await waitTime(1000);
           setVisible(false);
           message.success('提交成功');
+        }}
+        current={current}
+        onCurrentChange={(_) => {
+          setCurrent(_);
         }}
         formProps={{
           validateMessages: {
@@ -88,13 +96,23 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
         }}
       >
 
-        <StepsForm.StepForm
+        <StepsForm.StepForm // First step start.
           title='新建群组'
           onFinish={async (values) => {
-            await waitTime(2000);
-            console.log(values);
-            message.success('提交成功');
-            return true;
+            try {
+              await createGroup({
+                identifier: values.identifier,
+                manager: values.manager,
+                description: values.description,
+                parent: props.parent,
+              });
+              console.log(values);
+              message.success('提交成功');
+              return true;
+            } catch (e) {
+              message.error('创建失败，请检查后重试！');
+              return false;
+            }
           }}
         >
           <ProFormText
@@ -111,32 +129,11 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             showSearch
             width='md'
           />
-
-          {/*
-          <ProForm.Item name='manager' label='负责人'              style={{ width: '100%' }}
-          >
-            <Select
-              // className='pro-field-md'
-              // mode='multiple'
-              showSearch
-              labelInValue
-
-              placeholder='Select users'
-              notFoundContent={fetching ? <Spin size='small' /> : null}
-              filterOption={false}
-              onSearch={fetchUserForManager}
-              onChange={handleChange}
-              style={{ width: '100%' }}
-            >
-              {data.map(d => (
-                <Option className='pro-field-md' key={d.value} value={d.value}>{d.text}</Option>
-              ))}
-            </Select>
-          </ProForm.Item>
-          */}
           <ProFormTextArea width='md' name='description' label='描述' />
         </StepsForm.StepForm>
-        <StepsForm.StepForm
+
+
+        <StepsForm.StepForm // Second step.
           title='新建群组'
           onFinish={async (values) => {
             await waitTime(2000);

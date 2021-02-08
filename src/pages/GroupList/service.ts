@@ -1,5 +1,5 @@
 import request from 'umi-request';
-import type { TableListParams, QueryGroupTreeParams, QueryGroupMemberParams } from './data.d';
+import type { TableListParams, QueryGroupTreeParams, QueryGroupMemberParams, CreateGroupParams } from './data.d';
 
 export async function queryGroup(params?: TableListParams) {
   return request('/api/rule', {
@@ -46,5 +46,14 @@ export async function queryGroupTree(params?: QueryGroupTreeParams) {
 export async function queryGroupMember(params: QueryGroupMemberParams) {
   return request('/api/group/members', {
     params,
+  });
+}
+
+export async function createGroup(params: CreateGroupParams) {
+  return request('/api/group',{
+    method: 'POST',
+    data:{
+      ...params
+    }
   });
 }

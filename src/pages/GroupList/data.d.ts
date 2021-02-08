@@ -65,3 +65,10 @@ export interface GroupMemberData {
   uid: string,
   targetKey?: boolean
 }
+
+export interface CreateGroupParams {
+  identifier: string,
+  manager: string,
+  description: string,
+  parent: string,
+}
