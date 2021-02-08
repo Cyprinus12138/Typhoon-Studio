@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   StepsForm,
   ProFormText, ProFormTextArea, ProFormSelect,
 } from '@ant-design/pro-form';
 
 import { Button, message, Modal, Transfer } from 'antd';
-// import type { SelectValue } from 'antd/lib/select';
 import { queryGroupMember, createGroup } from '../service';
-import type { GroupMemberData } from '../data';
+import type { GroupMemberData, UserTransferRecord } from '../data';
 import { UserOutlined } from '@ant-design/icons';
 
 
@@ -26,37 +25,59 @@ const waitTime = (time: number = 100) => {
 
 
 const CreateForm: React.FC<CreateFormProps> = (props) => {
-  // const { modalVisible, onCancel } = props;
-  const [data, setData] = useState([]);
+  const [managerSelectData, setManagerSelectData] = useState([]);
+  const [memberTransferData, setMemberTransferData] = useState([]);
+  const [targetKeys, setTargetKeys] = useState<any[]>([]);
   const [visible, setVisible] = useState(false);
   const [current, setCurrent] = useState(0);
+  const [newGid, setNewGid] = useState<string>('');
   const [form_0] = StepsForm.useForm();
   const [form_1] = StepsForm.useForm();
   const [form_2] = StepsForm.useForm();
 
-  const fetchUserForManager = async (/* value: string */) => {
-    const users = await queryGroupMember({ getParent: false, group: props.parent });
-    const res = users.data.map((user: GroupMemberData) => ({
-      title: user.real_name,
-      label: <span>{(user.role === 'MANAGER') && <UserOutlined />}{user.real_name}</span>,
-      value: user.uid,
-      isManager: user.role === 'MANAGER',
-    }));
-    setData(res);
-  };
+
+  const fetchUserForGroup = useCallback(() => {
+    queryGroupMember({ getParent: true, group: newGid }).then((users) => {
+      const targetKeySet: any[] = [];
+      const transfer = users.data.map((user: GroupMemberData) => {
+        if (user.targetKey) targetKeySet.push(user.uid);
+        return {
+          title: user.real_name,
+          key: user.uid,
+          disabled: user.super_manager ,
+          isManager: user.isManager,
+        };
+      });
+      setMemberTransferData(transfer);
+      setTargetKeys(targetKeySet);
+    });
+  }, [newGid]);
+
+  const fetchUserForManager = useCallback((/* value: string */) => {
+    queryGroupMember({ getParent: false, group: props.parent }).then((users) => {
+      const res = users.data.map((user: GroupMemberData) => ({
+        title: user.real_name,
+        label: <span>{(user.isManager) && <UserOutlined />}{user.real_name}</span>,
+        value: user.uid,
+      }));
+      setManagerSelectData(res);
+    });
+
+  }, [props.parent]);
+
 
   useEffect(() => {
     if (visible)
       fetchUserForManager();
     setCurrent(0);
-  }, [visible]);
+  }, [fetchUserForManager, visible]);
 
   useEffect(() => {
     if ((current === 0) && visible) // To avoid useless fetch after form complete.
       fetchUserForManager();
     if (current === 1)
-      ;
-  }, [current]);
+      fetchUserForGroup();
+  }, [current, fetchUserForGroup, fetchUserForManager, visible]);
 
   const customSubmitter = (
     <div className='steps-action'>
@@ -126,12 +147,13 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
           form={form_0}
           onFinish={async (values) => {
             try {
-              await createGroup({
+              const { gid } = await createGroup({
                 identifier: values.identifier,
                 manager: values.manager,
                 description: values.description,
                 parent: props.parent,
               });
+              setNewGid(gid);
               message.success('提交成功');
               return true;
             } catch (e) {
@@ -150,7 +172,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
           <ProFormSelect
             label='负责人'
             name='manager'
-            options={data}
+            options={managerSelectData}
             showSearch
             width='md'
           />
@@ -168,7 +190,15 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
           }}
         >
 
-          <Transfer />
+          <Transfer
+            dataSource={memberTransferData}
+            targetKeys={targetKeys}
+            showSearch
+            render={(value: UserTransferRecord) => (
+              <span>{(value.isManager) && <UserOutlined />}{value.title}</span>
+            )}
+            onChange={(t => setTargetKeys(t))}
+          />
         </StepsForm.StepForm>
       </StepsForm>
     </>

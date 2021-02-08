@@ -63,7 +63,16 @@ export interface GroupMemberData {
   real_name: string,
   role: string,
   uid: string,
-  targetKey?: boolean
+  targetKey?: boolean,
+  super_manager?: boolean,
+  isManager?: boolean,
+}
+
+export interface UserTransferRecord {
+  title: string,
+  key: string,
+  disabled?: boolean,
+  isManager?: boolean,
 }
 
 export interface CreateGroupParams {
