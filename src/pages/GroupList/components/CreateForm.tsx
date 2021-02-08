@@ -4,13 +4,12 @@ import {
   ProFormText, ProFormTextArea, ProFormSelect,
 } from '@ant-design/pro-form';
 
-import { message, Modal, Transfer } from 'antd';
+import { Button, message, Modal, Transfer } from 'antd';
 // import type { SelectValue } from 'antd/lib/select';
 import { queryGroupMember, createGroup } from '../service';
 import type { GroupMemberData } from '../data';
 import { UserOutlined } from '@ant-design/icons';
 
-// const { Option } = Select;
 
 interface CreateFormProps {
   parent: string,
@@ -31,6 +30,9 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
   const [data, setData] = useState([]);
   const [visible, setVisible] = useState(false);
   const [current, setCurrent] = useState(0);
+  const [form_0] = StepsForm.useForm();
+  const [form_1] = StepsForm.useForm();
+  const [form_2] = StepsForm.useForm();
 
   const fetchUserForManager = async (/* value: string */) => {
     const users = await queryGroupMember({ getParent: false, group: props.parent });
@@ -50,12 +52,36 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
   }, [visible]);
 
   useEffect(() => {
-    if (current === 0)
+    if ((current === 0) && visible) // To avoid useless fetch after form complete.
       fetchUserForManager();
     if (current === 1)
       ;
   }, [current]);
 
+  const customSubmitter = (
+    <div className='steps-action'>
+      {current === 0 && (
+        <Button type='primary' onClick={() => {
+          form_0.submit();
+        }}>
+          Next
+        </Button>
+      )}
+      {current === 1 && (
+        <Button type='primary' onClick={() => {
+          form_1.submit();
+        }}>
+          Next
+        </Button>
+      )}{current === 2 && (
+      <Button type='primary' onClick={() => {
+        form_2.submit();
+      }}>
+        Next
+      </Button>
+    )}
+    </div>
+  );
 
   return (
     <>
@@ -65,8 +91,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
 
 
       <StepsForm
-        onFinish={async (values) => {
-          console.log(values);
+        onFinish={async () => {
           await waitTime(1000);
           setVisible(false);
           message.success('提交成功');
@@ -80,14 +105,14 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             required: '此项为必填项',
           },
         }}
-        stepsFormRender={(dom, submitter) => {
+        stepsFormRender={(dom) => {
           return (
             <Modal
               title='分步表单'
               width={800}
               onCancel={() => setVisible(false)}
               visible={visible}
-              footer={submitter}
+              footer={customSubmitter}
               destroyOnClose
             >
               {dom}
@@ -98,6 +123,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
 
         <StepsForm.StepForm // First step start.
           title='新建群组'
+          form={form_0}
           onFinish={async (values) => {
             try {
               await createGroup({
@@ -106,7 +132,6 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
                 description: values.description,
                 parent: props.parent,
               });
-              console.log(values);
               message.success('提交成功');
               return true;
             } catch (e) {
@@ -134,10 +159,10 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
 
 
         <StepsForm.StepForm // Second step.
+          form={form_1}
           title='新建群组'
-          onFinish={async (values) => {
+          onFinish={async () => {
             await waitTime(2000);
-            console.log(values);
             message.success('提交成功');
             return true;
           }}
