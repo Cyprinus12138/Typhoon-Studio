@@ -81,3 +81,14 @@ export interface CreateGroupParams {
   description: string,
   parent: string,
 }
+
+export interface AddRecord {
+  uid: string,
+  ismManager?: boolean,
+}
+
+export interface PutMemberGroupParams {
+  gid: string,
+  addList?: AddRecord[],
+  quitList?: any[],
+}

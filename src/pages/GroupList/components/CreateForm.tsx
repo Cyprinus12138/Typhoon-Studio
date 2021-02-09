@@ -4,11 +4,25 @@ import {
   ProFormText, ProFormTextArea, ProFormSelect,
 } from '@ant-design/pro-form';
 
-import { Button, message, Modal, Transfer } from 'antd';
-import { queryGroupMember, createGroup } from '../service';
+import { Button, message, Modal, Result, Transfer } from 'antd';
+import { queryGroupMember, createGroup, putGroupMember } from '../service';
 import type { GroupMemberData, UserTransferRecord } from '../data';
 import { UserOutlined } from '@ant-design/icons';
 
+// 取两个Array并集
+function union(a: any[], b: any[]) {
+  return [...new Set([...new Set(a), ...new Set(b)])];
+}
+
+// 取两个Array差集
+function minus(a: any[], b: any[]) {
+  return a.filter(x => !new Set(b).has(x));
+}
+
+// 取两个Array交集
+function intersect(a: any[], b: any[]) {
+  return a.filter(x => new Set(b).has(x));
+}
 
 interface CreateFormProps {
   parent: string,
@@ -27,9 +41,15 @@ const waitTime = (time: number = 100) => {
 const CreateForm: React.FC<CreateFormProps> = (props) => {
   const [managerSelectData, setManagerSelectData] = useState([]);
   const [memberTransferData, setMemberTransferData] = useState([]);
+
   const [targetKeys, setTargetKeys] = useState<any[]>([]);
+  const [addGroupSet, setAddGroupSet] = useState<string[]>([]);
+  const [quitGroupSet, setQuitGroupSet] = useState<string[]>([]);
+  const [totalState, setTotal] = useState();
+  const [successNumState, setSuccessNum] = useState();
+
   const [visible, setVisible] = useState(false);
-  const [current, setCurrent] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
   const [newGid, setNewGid] = useState<string>('');
   const [form_0] = StepsForm.useForm();
   const [form_1] = StepsForm.useForm();
@@ -44,7 +64,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
         return {
           title: user.real_name,
           key: user.uid,
-          disabled: user.super_manager ,
+          disabled: user.super_manager,
           isManager: user.isManager,
         };
       });
@@ -69,36 +89,36 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
   useEffect(() => {
     if (visible)
       fetchUserForManager();
-    setCurrent(0);
+    setCurrentStep(0);
   }, [fetchUserForManager, visible]);
 
   useEffect(() => {
-    if ((current === 0) && visible) // To avoid useless fetch after form complete.
+    if ((currentStep === 0) && visible) // To avoid useless fetch after form complete.
       fetchUserForManager();
-    if (current === 1)
+    if (currentStep === 1)
       fetchUserForGroup();
-  }, [current, fetchUserForGroup, fetchUserForManager, visible]);
+  }, [currentStep, fetchUserForGroup, fetchUserForManager, visible]);
 
   const customSubmitter = (
     <div className='steps-action'>
-      {current === 0 && (
+      {currentStep === 0 && (
         <Button type='primary' onClick={() => {
           form_0.submit();
         }}>
-          Next
+          下一步
         </Button>
       )}
-      {current === 1 && (
+      {currentStep === 1 && (
         <Button type='primary' onClick={() => {
           form_1.submit();
         }}>
-          Next
+          下一步
         </Button>
-      )}{current === 2 && (
+      )}{currentStep === 2 && (
       <Button type='primary' onClick={() => {
         form_2.submit();
       }}>
-        Next
+        完成
       </Button>
     )}
     </div>
@@ -117,9 +137,9 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
           setVisible(false);
           message.success('提交成功');
         }}
-        current={current}
+        current={currentStep}
         onCurrentChange={(_) => {
-          setCurrent(_);
+          setCurrentStep(_);
         }}
         formProps={{
           validateMessages: {
@@ -155,6 +175,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
               });
               setNewGid(gid);
               message.success('提交成功');
+              form_0.resetFields();
               return true;
             } catch (e) {
               message.error('创建失败，请检查后重试！');
@@ -168,6 +189,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             label='群组名称'
             tooltip='最长为 255 位'
             placeholder='请输入名称'
+            required
           />
           <ProFormSelect
             label='负责人'
@@ -175,21 +197,34 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             options={managerSelectData}
             showSearch
             width='md'
+            required  // TODO Resolve required problem.
           />
-          <ProFormTextArea width='md' name='description' label='描述' />
+          <ProFormTextArea width='md' name='description' label='描述' required />
         </StepsForm.StepForm>
 
 
         <StepsForm.StepForm // Second step.
           form={form_1}
-          title='新建群组'
+          title='添加成员'
           onFinish={async () => {
-            await waitTime(2000);
-            message.success('提交成功');
-            return true;
+            try {
+              const mid = intersect(addGroupSet, quitGroupSet);
+              await setAddGroupSet(prevState => minus(prevState, mid));
+              await setQuitGroupSet(prevState => minus(prevState, mid));
+              const { total, successNum } = await putGroupMember({
+                addList: addGroupSet.map(item => ({ uid: item })),
+                quitList: quitGroupSet,
+                gid: newGid,
+              });
+              setTotal(total);
+              setSuccessNum(successNum);
+              message.success('提交成功');
+              return true;
+            } catch (e) {
+              return false;
+            }
           }}
         >
-
           <Transfer
             dataSource={memberTransferData}
             targetKeys={targetKeys}
@@ -197,8 +232,30 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             render={(value: UserTransferRecord) => (
               <span>{(value.isManager) && <UserOutlined />}{value.title}</span>
             )}
-            onChange={(t => setTargetKeys(t))}
+            onChange={((t, direction, moveKeys) => {
+              setTargetKeys(t);
+              if (direction === 'right') {
+                setAddGroupSet(prevState => (union(prevState, moveKeys)));
+              } else {
+                setQuitGroupSet(prevState => (union(prevState, moveKeys)));
+              }
+            })}
           />
+        </StepsForm.StepForm>
+        <StepsForm.StepForm // Third step.
+          form={form_2}
+          title='创建完成'
+          onFinish={async () => {
+            return true;
+          }}
+        >
+          <Result
+            status='success'
+            title={'创建完成'}
+            subTitle={`共添加${totalState}人，成功${successNumState}人。`}
+            style={{ marginBottom: 16 }}
+          >
+          </Result>
         </StepsForm.StepForm>
       </StepsForm>
     </>

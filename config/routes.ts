@@ -78,6 +78,12 @@ export default [
     component: './GroupList',
   },
   {
+    name: '成功页',
+    icon: 'smile',
+    path: '/resultsuccess',
+    component: './ResultSuccess',
+  },
+  {
     component: './404',
   },
 ];
