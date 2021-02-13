@@ -19,7 +19,7 @@ const DeleteForm: React.FC<DeleteFormProps> = (props) => {
   return (
     <>
       <ModalForm
-        title={"删除群组"}
+        title={'删除群组'}
         trigger={<span>删除</span>}
         width='25%'
         onFinish={async values => {
@@ -50,5 +50,6 @@ const DeleteForm: React.FC<DeleteFormProps> = (props) => {
     </>
   );
 };
+
 
 export default DeleteForm;

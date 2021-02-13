@@ -87,7 +87,8 @@ const GroupManagement: React.FC = () => {
     setSelectedGroup(node);
   }
 
-  const menu = (gid: string, isManager?: boolean, isLeaf?: boolean) => {
+  const menu = (group: GroupNode) => {
+    const { isManager, key: gid, isLeaf, title } = group;
     return (
       <Menu>
         {isManager &&
@@ -104,17 +105,15 @@ const GroupManagement: React.FC = () => {
         </>
         }
 
-        <Menu.Item>
-          <span onClick={() => {
-            refreshNode(selectedGroup);
-          }}>
-            刷新
-          </span>
+        <Menu.Item onClick={() => {
+          refreshNode(selectedGroup);
+        }}>
+          刷新
         </Menu.Item>
         {isManager &&
-          <Menu.Item danger>
-            <DeleteForm gid={gid} title={gid} />
-          </Menu.Item>
+        <Menu.Item danger>
+          <DeleteForm gid={gid} title={title} />
+        </Menu.Item>
         }
 
       </Menu>
@@ -124,7 +123,7 @@ const GroupManagement: React.FC = () => {
 
   function renderTitle(node: GroupNode): React.ReactNode {
     return (
-      <Dropdown overlay={menu(node.key, node.isManager, node.isLeaf)}
+      <Dropdown overlay={menu(node)}
                 trigger={['contextMenu']}><span>{node.title}</span></Dropdown>
     );
   }
