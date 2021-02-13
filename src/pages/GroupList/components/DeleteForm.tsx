@@ -7,6 +7,8 @@ import { message } from 'antd';
 interface DeleteFormProps {
   gid: string,
   title: string,
+  visible?: boolean,
+  onVisibleChange?: (visible: boolean) => void;
 }
 
 const renderLabel = (title: string) => (
@@ -14,13 +16,18 @@ const renderLabel = (title: string) => (
 );
 
 const DeleteForm: React.FC<DeleteFormProps> = (props) => {
-  const { gid, title } = props;
+  const { gid, title, onVisibleChange, visible: vis } = props;
+
 
   return (
     <>
       <ModalForm
         title={'删除群组'}
-        trigger={<span>删除</span>}
+        visible={vis}
+        onVisibleChange={visible => {
+          if (onVisibleChange)
+            onVisibleChange(visible);
+        }}
         width='25%'
         onFinish={async values => {
           if (values.identifier !== title) {

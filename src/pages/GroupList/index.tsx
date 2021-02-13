@@ -38,6 +38,9 @@ const GroupManagement: React.FC = () => {
   const [selectedGroup, setSelectedGroup] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
 
+  const [toBeDeleted, setToBeDeleted] = useState<GroupNode>();
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+
 
   function onLoadData({ key, children, level, isManager }: any) {
     return new Promise<void>((resolve) => {
@@ -88,7 +91,7 @@ const GroupManagement: React.FC = () => {
   }
 
   const menu = (group: GroupNode) => {
-    const { isManager, key: gid, isLeaf, title } = group;
+    const { isManager, key: gid, isLeaf } = group;
     return (
       <Menu>
         {isManager &&
@@ -100,7 +103,7 @@ const GroupManagement: React.FC = () => {
           </Menu.Item>
           {!isLeaf &&
           <Menu.Item>
-            <CreateForm parent={gid} />
+            <CreateForm parent={gid} /> // TODO 重构这个Modal
           </Menu.Item>}
         </>
         }
@@ -111,8 +114,11 @@ const GroupManagement: React.FC = () => {
           刷新
         </Menu.Item>
         {isManager &&
-        <Menu.Item danger>
-          <DeleteForm gid={gid} title={title} />
+        <Menu.Item danger onClick={() => {
+          setToBeDeleted(group); // TODO 合并这两个state
+          setDeleteModalVisible(true);
+        }} >
+          删除
         </Menu.Item>
         }
 
@@ -131,6 +137,13 @@ const GroupManagement: React.FC = () => {
   return (
 
     <ProCard title='群组管理' /* extra='2019年9月28日' */ split='vertical' bordered headerBordered>
+
+      <DeleteForm gid={toBeDeleted?.key} title={toBeDeleted?.title} visible={deleteModalVisible}
+                  onVisibleChange={visible => {
+                    setDeleteModalVisible(visible);
+                  }} />
+
+
       <UpdateForm
         onSubmit={async () => {
 
