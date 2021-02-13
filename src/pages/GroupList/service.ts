@@ -72,3 +72,12 @@ export async function putGroupMember(params: PutMemberGroupParams) {
     },
   });
 }
+
+export async function deleteGroup(params: { gid: string }) {
+  return request('/api/group', {
+    method: 'DELETE',
+    data: {
+      ...params,
+    },
+  });
+}

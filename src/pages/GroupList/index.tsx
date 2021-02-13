@@ -6,6 +6,7 @@ import type { GroupNode } from './data';
 import { queryGroupTree } from './service';
 import CreateForm from './components/CreateForm';
 import UpdateForm from '@/pages/UserList/components/UpdateForm';
+import DeleteForm from '@/pages/GroupList/components/DeleteForm';
 
 
 const initTreeDate: GroupNode[] = [
@@ -104,15 +105,18 @@ const GroupManagement: React.FC = () => {
         }
 
         <Menu.Item>
-          <a target='_blank' rel='noopener noreferrer' onClick={() => {
+          <span onClick={() => {
             refreshNode(selectedGroup);
           }}>
             刷新
-          </a>
+          </span>
         </Menu.Item>
+        {isManager &&
+          <Menu.Item danger>
+            <DeleteForm gid={gid} title={gid} />
+          </Menu.Item>
+        }
 
-
-        <Menu.Item danger>a danger item</Menu.Item>
       </Menu>
     );
   };

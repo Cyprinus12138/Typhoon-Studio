@@ -126,9 +126,9 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
 
   return (
     <>
-      <a onClick={() => {
+      <span onClick={() => {
         setVisible(true);
-      }}>新建</a>
+      }}>新建</span>
 
 
       <StepsForm
