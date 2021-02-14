@@ -41,6 +41,8 @@ const GroupManagement: React.FC = () => {
   const [toBeDeleted, setToBeDeleted] = useState<GroupNode>();
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
+  const [toBeCreated, setToBeCreated] = useState<string>('');
+  const [createModalVisible, setCreateModalVisible] = useState(false);
 
   function onLoadData({ key, children, level, isManager }: any) {
     return new Promise<void>((resolve) => {
@@ -102,8 +104,12 @@ const GroupManagement: React.FC = () => {
             </a>
           </Menu.Item>
           {!isLeaf &&
-          <Menu.Item>
-            <CreateForm parent={gid} /> // TODO 重构这个Modal
+          <Menu.Item onClick={() => {
+            setToBeCreated(gid);
+            setCreateModalVisible(true);
+          }
+          }>
+            新建
           </Menu.Item>}
         </>
         }
@@ -117,7 +123,7 @@ const GroupManagement: React.FC = () => {
         <Menu.Item danger onClick={() => {
           setToBeDeleted(group); // TODO 合并这两个state
           setDeleteModalVisible(true);
-        }} >
+        }}>
           删除
         </Menu.Item>
         }
@@ -155,6 +161,8 @@ const GroupManagement: React.FC = () => {
         values={{}}
       />
 
+      <CreateForm parent={toBeCreated} onVisibleChange={(visible => setCreateModalVisible(visible))}
+                  visible={createModalVisible} />
 
       <ProCard title='群组' colSpan='300px'>
         <Tree loadData={onLoadData} treeData={treeData} showLine={true} titleRender={renderTitle}

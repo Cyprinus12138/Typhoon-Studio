@@ -27,18 +27,14 @@ function intersect(a: any[], b: any[]) {
 interface CreateFormProps {
   parent: string,
   onCancel?: () => void;
+  visible?: boolean,
+  onVisibleChange?: (visible: boolean) => void;
 }
-
-const waitTime = (time: number = 100) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(true);
-    }, time);
-  });
-};
 
 
 const CreateForm: React.FC<CreateFormProps> = (props) => {
+  const { visible, onVisibleChange } = props;
+
   const [managerSelectData, setManagerSelectData] = useState([]);
   const [memberTransferData, setMemberTransferData] = useState([]);
 
@@ -48,7 +44,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
   const [totalState, setTotal] = useState();
   const [successNumState, setSuccessNum] = useState();
 
-  const [visible, setVisible] = useState(false);
+  // const [visible, setVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [newGid, setNewGid] = useState<string>('');
   const [form_0] = StepsForm.useForm();
@@ -126,15 +122,11 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
 
   return (
     <>
-      <span onClick={() => {
-        setVisible(true);
-      }}>新建</span>
-
-
       <StepsForm
         onFinish={async () => {
-          await waitTime(1000);
-          setVisible(false);
+          if (onVisibleChange) {
+            onVisibleChange(false);
+          }
           message.success('提交成功');
         }}
         current={currentStep}
@@ -151,7 +143,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             <Modal
               title='分步表单'
               width={800}
-              onCancel={() => setVisible(false)}
+              onCancel={() => onVisibleChange ? onVisibleChange(false) : {}}
               visible={visible}
               footer={customSubmitter}
               destroyOnClose
