@@ -30,7 +30,7 @@ const DeleteForm: React.FC<DeleteFormProps> = (props) => {
         }}
         width='25%'
         onFinish={async values => {
-          if (values.identifier !== title) {
+          if (values.title !== title) {
             message.error('请输入完整群组名称');
             return false;
           }
@@ -51,7 +51,7 @@ const DeleteForm: React.FC<DeleteFormProps> = (props) => {
         <ProFormText
           width='md'
           label={renderLabel(title)}
-          name='identifier'
+          name='title'
         />
       </ModalForm>
     </>

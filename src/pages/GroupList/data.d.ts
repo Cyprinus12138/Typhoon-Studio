@@ -77,6 +77,7 @@ export interface UserTransferRecord {
 
 export interface CreateGroupParams {
   identifier: string,
+  title: string,
   manager: string,
   description: string,
   parent: string,

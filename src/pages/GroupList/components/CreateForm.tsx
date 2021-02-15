@@ -141,7 +141,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
         stepsFormRender={(dom) => {
           return (
             <Modal
-              title='分步表单'
+              title='添加组'
               width={800}
               onCancel={() => onVisibleChange ? onVisibleChange(false) : {}}
               visible={visible}
@@ -161,6 +161,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             try {
               const { gid } = await createGroup({
                 identifier: values.identifier,
+                title: values.title,
                 manager: values.manager,
                 description: values.description,
                 parent: props.parent,
@@ -177,10 +178,18 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
         >
           <ProFormText
             width='md'
-            name='identifier'
+            name='title'
             label='群组名称'
             tooltip='最长为 255 位'
             placeholder='请输入名称'
+            required
+          />
+          <ProFormText
+            width='md'
+            name='identifier'
+            label='标识符'
+            tooltip='最长为 255 位'
+            placeholder='请输入标识符'
             required
           />
           <ProFormSelect
