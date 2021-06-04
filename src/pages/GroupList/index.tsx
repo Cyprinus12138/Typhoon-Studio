@@ -169,8 +169,8 @@ const GroupManagement: React.FC = () => {
               onRightClick={onRightClick}
               showIcon={true} />
       </ProCard>
-      <ProCard title='流量占用情况'>
-        <div style={{ height: 360 }}>右侧内容</div>
+      <ProCard title='账户使用情况'>
+        <div style={{ height: 360 }}>账户使用情况</div>
       </ProCard>
     </ProCard>
 

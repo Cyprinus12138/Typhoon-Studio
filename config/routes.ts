@@ -22,25 +22,16 @@ export default [
     component: './Welcome',
   },
   {
-    path: '/admin',
-    name: 'admin',
-    icon: 'crown',
-    access: 'canAdmin',
-    component: './Admin',
-    routes: [
-      {
-        path: '/admin/sub-page',
-        name: 'sub-page',
-        icon: 'smile',
-        component: './Welcome',
-      },
-    ],
-  },
-  {
     name: 'list.table-list',
     icon: 'table',
     path: '/list',
     component: './TableList',
+  },
+  {
+    name: 'downloadTaskList',
+    icon: 'crown',
+    path: '/downloadtasklist',
+    component: './DownloadTaskList',
   },
   {
     path: '/',
@@ -51,6 +42,13 @@ export default [
     icon: 'smile',
     path: '/userlist',
     component: './UserList',
+  },
+
+  {
+    name: 'groupList',
+    icon: 'smile',
+    path: '/grouplist',
+    component: './GroupList',
   },
   {
     name: 'account',
@@ -70,18 +68,6 @@ export default [
         component: './Account/AccountSettings',
       },
     ],
-  },
-  {
-    name: 'groupList',
-    icon: 'smile',
-    path: '/grouplist',
-    component: './GroupList',
-  },
-  {
-    name: '成功页',
-    icon: 'smile',
-    path: '/resultsuccess',
-    component: './ResultSuccess',
   },
   {
     component: './404',

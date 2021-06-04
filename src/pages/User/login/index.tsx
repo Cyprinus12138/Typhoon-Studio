@@ -89,11 +89,14 @@ const Login: React.FC = () => {
         <div className={styles.top}>
           <div className={styles.header}>
             <Link to='/'>
-              <img alt='logo' className={styles.logo} src='/logo.svg' />
-              <span className={styles.title}>Ant Design</span>
+              <img alt='logo' className={styles.logo} src='/TFLOGO.png' />
+              <span className={styles.title}>Typhoon Studio</span>
             </Link>
           </div>
-          <div className={styles.desc}>Ant Design 是西湖区最具影响力的 Web 设计规范</div>
+          <div className={styles.desc}>{intl.formatMessage({
+            id: 'pages.login.desc',
+            defaultMessage: 'Typhoon Studio 台风数据收集与分析系统',
+          })}</div>
         </div>
 
         <div className={styles.main}>
@@ -121,22 +124,7 @@ const Login: React.FC = () => {
               handleSubmit(values as LoginParamsType);
             }}
           >
-            <Tabs activeKey={type} onChange={setType}>
-              <Tabs.TabPane
-                key='account'
-                tab={intl.formatMessage({
-                  id: 'pages.login.accountLogin.tab',
-                  defaultMessage: '账户密码登录',
-                })}
-              />
-              <Tabs.TabPane
-                key='mobile'
-                tab={intl.formatMessage({
-                  id: 'pages.login.phoneLogin.tab',
-                  defaultMessage: '手机号登录',
-                })}
-              />
-            </Tabs>
+
 
             {status === 401 && (
               <LoginMessage
@@ -283,29 +271,8 @@ const Login: React.FC = () => {
                 />
               </>
             )}
-            <div
-              style={{
-                marginBottom: 24,
-              }}
-            >
-              <ProFormCheckbox noStyle name='autoLogin'>
-                <FormattedMessage id='pages.login.rememberMe' defaultMessage='自动登录' />
-              </ProFormCheckbox>
-              <a
-                style={{
-                  float: 'right',
-                }}
-              >
-                <FormattedMessage id='pages.login.forgotPassword' defaultMessage='忘记密码' />
-              </a>
-            </div>
+
           </ProForm>
-          <Space className={styles.other}>
-            <FormattedMessage id='pages.login.loginWith' defaultMessage='其他登录方式' />
-            <AlipayCircleOutlined className={styles.icon} />
-            <TaobaoCircleOutlined className={styles.icon} />
-            <WeiboCircleOutlined className={styles.icon} />
-          </Space>
         </div>
       </div>
       <Footer />

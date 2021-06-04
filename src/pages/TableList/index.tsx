@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, message, Input, Drawer } from 'antd';
+import { Button, message, Input, Drawer, Popover } from 'antd';
 import React, { useState, useRef } from 'react';
 import { useIntl, FormattedMessage } from 'umi';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
@@ -12,6 +12,7 @@ import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 import type { TableListItem } from './data.d';
 import { queryRule, updateRule, addRule, removeRule } from './service';
+import PredictionView from '@/components/PredictionView';
 
 /**
  * 添加节点
@@ -101,96 +102,70 @@ const TableList: React.FC = () => {
       title: (
         <FormattedMessage
           id="pages.searchTable.updateForm.ruleName.nameLabel"
-          defaultMessage="规则名称"
+          defaultMessage="文件名"
         />
       ),
       dataIndex: 'name',
-      tip: '规则名称是唯一的 key',
       render: (dom, entity) => {
         return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
+          <Popover content={<img src={entity.avatar}/>} title={`台风${entity.code.toString()}`}>
+            <a
+              onClick={() => {
+                setCurrentRow(entity);
+                setShowDetail(true);
+              }}
+            >
+              {dom}
+            </a>
+          </Popover>
+
         );
       },
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleDesc" defaultMessage="描述" />,
-      dataIndex: 'desc',
-      valueType: 'textarea',
-    },
-    {
-      title: <FormattedMessage id="pages.searchTable.titleCallNo" defaultMessage="服务调用次数" />,
-      dataIndex: 'callNo',
+      title: <FormattedMessage id="pages.searchTable.titleCallNo" defaultMessage="台风级别" />,
+      dataIndex: 'grade',
       sorter: true,
       hideInForm: true,
       renderText: (val: string) =>
-        `${val}${intl.formatMessage({
+        `${intl.formatMessage({
+          id: 'pages.searchTable.cat',
+          defaultMessage: ' ',
+        })}${val}${intl.formatMessage({
           id: 'pages.searchTable.tenThousand',
-          defaultMessage: ' 万 ',
+          defaultMessage: ' ',
         })}`,
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="状态" />,
-      dataIndex: 'status',
-      hideInForm: true,
-      valueEnum: {
-        0: {
-          text: (
-            <FormattedMessage id="pages.searchTable.nameStatus.default" defaultMessage="关闭" />
-          ),
-          status: 'Default',
-        },
-        1: {
-          text: (
-            <FormattedMessage id="pages.searchTable.nameStatus.running" defaultMessage="运行中" />
-          ),
-          status: 'Processing',
-        },
-        2: {
-          text: (
-            <FormattedMessage id="pages.searchTable.nameStatus.online" defaultMessage="已上线" />
-          ),
-          status: 'Success',
-        },
-        3: {
-          text: (
-            <FormattedMessage id="pages.searchTable.nameStatus.abnormal" defaultMessage="异常" />
-          ),
-          status: 'Error',
-        },
+      title: <FormattedMessage id="pages.searchTable.titleDesc" defaultMessage="最大中心风速" />,
+      dataIndex: 'intensity',
+      sorter: true,
+      renderText: (val: string) =>
+        `${val}${intl.formatMessage({
+          id: 'pages.searchTable.mps',
+          defaultMessage: ' m/s ',
+        })}`,
+    },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="台风地理位置坐标" />,
+      dataIndex: 'lon',
+      valueType: 'textarea',
+      render: (dom, entity) => {
+        return (
+            <p>
+              {`${entity.lat}°N ${entity.lon}°E`}
+            </p>
+
+        );
       },
     },
     {
       title: (
-        <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="上次调度时间" />
+        <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="数据采集时间" />
       ),
       sorter: true,
-      dataIndex: 'updatedAt',
+      dataIndex: 'createdAt',
       valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return (
-            <Input
-              {...rest}
-              placeholder={intl.formatMessage({
-                id: 'pages.searchTable.exception',
-                defaultMessage: '请输入异常原因！',
-              })}
-            />
-          );
-        }
-        return defaultRender(item);
-      },
     },
     {
       title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="操作" />,
@@ -202,12 +177,10 @@ const TableList: React.FC = () => {
           onClick={() => {
             handleUpdateModalVisible(true);
             setCurrentRow(record);
+         //   console.log(record, updateModalVisible);
           }}
         >
-          <FormattedMessage id="pages.searchTable.config" defaultMessage="配置" />
-        </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          <FormattedMessage id="pages.searchTable.subscribeAlert" defaultMessage="订阅警报" />
+          <FormattedMessage id="pages.searchTable.config" defaultMessage="详情/风速估计" />
         </a>,
       ],
     },
@@ -218,24 +191,13 @@ const TableList: React.FC = () => {
       <ProTable<TableListItem>
         headerTitle={intl.formatMessage({
           id: 'pages.searchTable.title',
-          defaultMessage: '查询表格',
+          defaultMessage: '台风遥感云图数据',
         })}
         actionRef={actionRef}
         rowKey="key"
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalVisible(true);
-            }}
-          >
-            <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="新建" />
-          </Button>,
-        ]}
         request={(params, sorter, filter) => queryRule({ ...params, sorter, filter })}
         columns={columns}
         rowSelection={{
@@ -244,92 +206,7 @@ const TableList: React.FC = () => {
           },
         }}
       />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              <FormattedMessage id="pages.searchTable.chosen" defaultMessage="已选择" />{' '}
-              <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
-              <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
-              &nbsp;&nbsp;
-              <span>
-                <FormattedMessage
-                  id="pages.searchTable.totalServiceCalls"
-                  defaultMessage="服务调用次数总计"
-                />{' '}
-                {selectedRowsState.reduce((pre, item) => pre + item.callNo, 0)}{' '}
-                <FormattedMessage id="pages.searchTable.tenThousand" defaultMessage="万" />
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            <FormattedMessage id="pages.searchTable.batchDeletion" defaultMessage="批量删除" />
-          </Button>
-          <Button type="primary">
-            <FormattedMessage id="pages.searchTable.batchApproval" defaultMessage="批量审批" />
-          </Button>
-        </FooterToolbar>
-      )}
-      <ModalForm
-        title={intl.formatMessage({
-          id: 'pages.searchTable.createForm.newRule',
-          defaultMessage: '新建规则',
-        })}
-        width="400px"
-        visible={createModalVisible}
-        onVisibleChange={handleModalVisible}
-        onFinish={async (value) => {
-          const success = await handleAdd(value as TableListItem);
-          if (success) {
-            handleModalVisible(false);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-      >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: (
-                <FormattedMessage
-                  id="pages.searchTable.ruleName"
-                  defaultMessage="规则名称为必填项"
-                />
-              ),
-            },
-          ]}
-          width="md"
-          name="name"
-        />
-        <ProFormTextArea width="md" name="desc" />
-      </ModalForm>
-      <UpdateForm
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value);
-          if (success) {
-            handleUpdateModalVisible(false);
-            setCurrentRow(undefined);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-        onCancel={() => {
-          handleUpdateModalVisible(false);
-          setCurrentRow(undefined);
-        }}
-        updateModalVisible={updateModalVisible}
-        values={currentRow || {}}
-      />
+      <PredictionView visible={updateModalVisible} typhoon={currentRow} onClose={()=> handleUpdateModalVisible(false)}/>
 
       <Drawer
         width={600}

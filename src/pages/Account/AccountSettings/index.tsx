@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 
-import type { Dispatch} from 'umi';
+import type { Dispatch } from 'umi';
 import { FormattedMessage, connect } from 'umi';
 import { GridContent } from '@ant-design/pro-layout';
 import { Menu } from 'antd';
 import BaseView from './components/base';
 import BindingView from './components/binding';
-import type { CurrentUser,ResponseType } from './data.d';
+import type { CurrentUser, ResponseType } from './data.d';
 import NotificationView from './components/notification';
 import SecurityView from './components/security';
 import styles from './style.less';
@@ -20,32 +20,31 @@ interface AccountSettingsProps {
 }
 
 type AccountSettingsStateKeys = 'base' | 'security' | 'binding' | 'notification';
+
 interface AccountSettingsState {
   mode: 'inline' | 'horizontal';
   menuMap: Record<string, React.ReactNode>;
   selectKey: AccountSettingsStateKeys;
 }
 
-class AccountSettings extends Component<
-  AccountSettingsProps,
-  AccountSettingsState
-> {
+class AccountSettings extends Component<AccountSettingsProps,
+  AccountSettingsState> {
   main: HTMLDivElement | undefined = undefined;
 
   constructor(props: AccountSettingsProps) {
     super(props);
     const menuMap = {
-      base: <FormattedMessage id="accountandaccountsettings.menuMap.basic" defaultMessage="Basic Settings" />,
+      base: <FormattedMessage id='accountandaccountsettings.menuMap.basic' defaultMessage='Basic Settings' />,
       security: (
-        <FormattedMessage id="accountandaccountsettings.menuMap.security" defaultMessage="Security Settings" />
+        <FormattedMessage id='accountandaccountsettings.menuMap.security' defaultMessage='Security Settings' />
       ),
       binding: (
-        <FormattedMessage id="accountandaccountsettings.menuMap.binding" defaultMessage="Account Binding" />
+        <FormattedMessage id='accountandaccountsettings.menuMap.binding' defaultMessage='Account Binding' />
       ),
       notification: (
         <FormattedMessage
-          id="accountandaccountsettings.menuMap.notification"
-          defaultMessage="New Message Notification"
+          id='accountandaccountsettings.menuMap.notification'
+          defaultMessage='New Message Notification'
         />
       ),
     };
@@ -141,7 +140,7 @@ class AccountSettings extends Component<
             }
           }}
         >
-          <div className={styles.leftMenu}>
+          {/* <div className={styles.leftMenu}>
             <Menu
               mode={mode}
               selectedKeys={[selectKey]}
@@ -149,7 +148,7 @@ class AccountSettings extends Component<
             >
               {this.getMenu()}
             </Menu>
-          </div>
+          </div> */}
           <div className={styles.right}>
             <div className={styles.title}>{this.getRightTitle()}</div>
             {this.renderChildren()}

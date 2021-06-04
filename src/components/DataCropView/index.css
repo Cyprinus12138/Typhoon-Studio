@@ -10,8 +10,14 @@
 
 .DataCropView_Image,
 .DataCropView_Video {
+
   max-width: calc(61.8vmin);
   max-height: calc(61.8vmin);
+
+  /*
+  max-width: 61.8%;
+  max-height: 61.8% ;
+*/
 
   margin-left: auto;
   margin-right: auto;

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Popover } from 'antd';
 
 import classNames from 'classnames';
 import DecimalStepSlide from '@/components/DecimalStepSlide';
@@ -12,7 +13,9 @@ export type DataCropViewProps = {
   lon?: number;
   cropSize?: number;
   resolution?: number;
-
+  convert?: boolean;
+  popTitle?: string;
+  popDom?: any;
 };
 
 
@@ -23,6 +26,7 @@ const DataCropView: React.FC<DataCropViewProps> = (props) => {
     lat: 26.07,
     className: '',
     resolution: 4000,
+    convert: true,
   };
 
   // let cropAreaRef: HTMLDivElement | null = null;
@@ -34,7 +38,10 @@ const DataCropView: React.FC<DataCropViewProps> = (props) => {
     lat,
     lon,
     resolution,
-  } = { ...props, ...defaultProps };
+    convert,
+    popTitle,
+    popDom,
+  } = { ...defaultProps, ...props };
 
   const COFF = 1373.5 * (4000 / resolution);
   const CFAC = 10233137 * (4000 / resolution);
@@ -71,7 +78,7 @@ const DataCropView: React.FC<DataCropViewProps> = (props) => {
 
   };
 
-  const { x, y } = convertCoordinate();
+  const { x, y } = convert ? convertCoordinate() : { lat, lon };
 
   const onResize: (() => void) = () => {
     if (imgRef.current?.height)
@@ -187,17 +194,19 @@ const DataCropView: React.FC<DataCropViewProps> = (props) => {
           }}
           className={classNames(style.DataCropView_Image)}
         />
-        <div
-          style={{
-            width: cropSize * factor,
-            height: cropSize * factor,
-          }}
-          ref={cropAreaRef}
-          data-testid='cropper'
-          className={classNames(style.DataCropView_CropArea,
-            style.DataCropView_CropAreaGrid,
-          )}
-        />
+        <Popover content={popDom} title={popTitle} placement="rightTop">
+          <div
+            style={{
+              width: cropSize * factor,
+              height: cropSize * factor,
+            }}
+            ref={cropAreaRef}
+            data-testid='cropper'
+            className={classNames(style.DataCropView_CropArea,
+              style.DataCropView_CropAreaGrid,
+            )}
+          />
+        </Popover>
       </div>
       <div
         className={classNames(style.horizontal)}

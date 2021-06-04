@@ -2,9 +2,10 @@ import React from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import { Card, /* Alert, Typography */ } from 'antd';
 // import { FormattedMessage } from 'umi';
-// import styles from './Welcome.less';
+import styles from './Welcome.less';
 
 import DataCropView from '@/components/DataCropView';
+import PredictionView from '@/components/PredictionView';
 
 /*
 const CodePreview: React.FC = ({ children }) => (
@@ -20,7 +21,7 @@ const CodePreview: React.FC = ({ children }) => (
 export default (): React.ReactNode => {
   return (
     <PageContainer>
-      <Card>
+
         {/*
         <Alert
           message={intl.formatMessage({
@@ -62,10 +63,17 @@ export default (): React.ReactNode => {
           </a>
         </Typography.Text>
         <CodePreview>yarn add @ant-design/pro-layout</CodePreview>
-        */}
+                <PredictionView image='/a.png' visible={false}/>
         <DataCropView image='/a.png' />
 
-      </Card>
+        */}
+        <iframe
+          className={styles.typhoon_view}
+          style={{width:'100%',border:'0px',height:'100%'}}
+          sandbox="allow-scripts allow-forms allow-same-origin"
+          scrolling="auto"
+          src={'https://tf.istrongcloud.com/'}
+        />
 
     </PageContainer>
   );
